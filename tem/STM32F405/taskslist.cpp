@@ -1,0 +1,329 @@
+﻿#include "label.h"
+#include "taskslist.h"
+#include "can.h"
+#include "motor.h"
+#include "imu.h"
+#include "RC.h"
+#include "tim.h"
+#include "control.h"
+#include "led.h"
+#include "delay.h"
+#include "HTmotor.h"
+#include "Power_read.h"
+#include "Power_limit.h"
+#include "supercap.h"
+#include "judgement.h"
+#include "xuc_can.h"
+#include "stm32f4xx_hal_can.h"
+#include "stm32f4xx_hal.h"
+#include "FreeRTOS.h"
+
+extern float Kp = 10;
+extern float Kd = 0.6;
+extern int start_flag;
+#define CTRL_PERIOD_MS          10      // �������ڣ�������ʵ�������޸�
+#define JAM_CURRENT_THRESHOLD   9000    // ����������ֵ����ʵ�ʵ�
+#define JAM_DETECT_TIME_MS      1500    // ����1���ж�����
+#define JAM_BACK_TIME_MS        2100    // ����1��
+void TASK::Init()
+{
+	//������ʼ����
+	xTaskCreate((TaskFunction_t)start_task,            //��������
+		(const char*)"start_task",          //��������
+		(uint16_t)START_STK_SIZE,        //������ջ��С
+		(void*)NULL,                  //���ݸ����������Ĳ���
+		(UBaseType_t)START_TASK_PRIO,       //�������ȼ�
+		(TaskHandle_t*)&StartTask_Handler);   //��������              
+	vTaskStartScheduler();          //������������
+}
+
+/*
+��ʼ������������
+*/
+void start_task(void* pvParameters)
+{
+	taskENTER_CRITICAL();           //�����ٽ���
+	//��������
+
+	xTaskCreate((TaskFunction_t)ArmTask,
+		(const char*)"ArmTask",
+		(uint16_t)LED_STK_SIZE,
+		(void*)NULL,
+		(UBaseType_t)LED_TASK_PRIO,
+		(TaskHandle_t*)&LedTask_Handler);
+
+	xTaskCreate((TaskFunction_t)DecodeTask,
+		(const char*)"DecodeTask",
+		(uint16_t)DECODE_STK_SIZE,
+		(void*)NULL,
+		(UBaseType_t)DECODE_TASK_PRIO,
+		(TaskHandle_t*)&DecodeTask_Handler);
+
+	xTaskCreate((TaskFunction_t)MotorUpdateTask,
+		(const char*)"MotorUpdateTask",
+		(uint16_t)MOTOR_STK_SIZE,
+		(void*)NULL,
+		(UBaseType_t)MOTOR_TASK_PRIO,
+		(TaskHandle_t*)&MotorTask_Handler);
+
+	xTaskCreate((TaskFunction_t)CanTransimtTask,
+		(const char*)"CanTransimtTask",
+		(uint16_t)CANTX_STK_SIZE,
+		(void*)NULL,
+		(UBaseType_t)CANTX_TASK_PRIO,
+		(TaskHandle_t*)&CanTxTask_Handler);
+
+	xTaskCreate((TaskFunction_t)ControlTask,
+		(const char*)"ControlTask",
+		(uint16_t)CONTROL_STK_SIZE,
+		(void*)NULL,
+		(UBaseType_t)CONTROL_TASK_PRIO,
+		(TaskHandle_t*)&ControlTask_Handler);
+
+	xTaskCreate((TaskFunction_t)UiSendTask,
+		(const char*)"UiSendTask",
+		(uint16_t)UISEND_STK_SIZE,
+		(void*)NULL,
+		(UBaseType_t)UISEND_TASK_PRIO,
+		(TaskHandle_t*)&UiSendTask_Handler);
+
+	vTaskDelete(StartTask_Handler); //ɾ����ʼ����
+	taskEXIT_CRITICAL();            //�˳��ٽ���
+}
+int CNT = 0;
+int CNT_1 = 0;
+int CNT_2 = 0;
+void MotorUpdateTask(void* pvParameters)
+{
+	
+	while (1)
+	{
+	TickType_t xlastWakeTime = xTaskGetTickCount();
+	
+		for (auto& motor : can1_motor)motor.Ontimer(can1.data, can1.temp_data);
+
+		for (auto& motor : can2_motor)motor.Ontimer(can2.data, can2.temp_data);
+		if (rc.rc.s[0] != 1) {
+			powerLimiter.ApplyToMotors(can1);
+		}
+
+		for (int i = 0; i < 3; ++i) {             // ����ǰ3����ID1~ID3��
+			DMmotor[i].State_Decode(can2, can2.jointidata);
+			DMmotor[i].DMmotor_Ontimer(can2, DMmotor[i].Kp, DMmotor[i].Kd, can2.jointpdata[i]);
+		}
+
+		CNT_1++;
+
+	vTaskDelayUntil(&xlastWakeTime, pdMS_TO_TICKS(2));//��ʼִ�и�����֮��1ms��ִ�и�����
+}
+}
+
+void CanTransimtTask(void* pvParameters)
+{
+	TickType_t xlastWakeTime = xTaskGetTickCount();
+	while (true)
+	{
+		// һ��ѭ����ȫ��
+		DMmotor[0].DMmotor_transmit();
+		DMmotor[1].DMmotor_transmit();
+		DMmotor[2].DMmotor_transmit();
+		can1.Transmit(0x1ff, can1.temp_data + 8);
+		can2.Transmit(0x1ff, can2.temp_data + 8);
+
+		can1.Transmit(0x200, can1.temp_data);
+		can2.Transmit(0x200, can2.temp_data);
+		xuc.Encode(judgement.data.robot_status_t.robot_id);
+		can2.Transmit(0x85, xuc.tx_data, 8);
+		vTaskDelayUntil(&xlastWakeTime, pdMS_TO_TICKS(2));
+	}
+}
+
+uint8_t flag_shoot = 0;
+void ControlTask(void* pvParameters)
+{
+	static int fire_hold_cnt = 0;
+	static uint16_t jam_current_cnt = 0;    // ��������ֵ����
+	static uint16_t jam_back_cnt = 0;       // ���˼���
+
+	while (true)
+	{
+	static uint8_t jam_flag = 0;            // �������˱�־
+	const float judgeLimit = static_cast<float>(judgement.data.robot_status_t.chassis_power_limit);
+
+	if (flag_shoot==1) {
+		powerLimiter.SetMaxPower(judgeLimit + 150.0f);
+	}
+	else if (flag_shoot == 2) {
+		powerLimiter.SetMaxPower(judgeLimit - 10.0f);
+	}
+	else {
+		powerLimiter.SetMaxPower(judgeLimit);
+	}
+		rc.Update();
+		if (fabs(can2_motor[0].curspeed) > 5000 && fabs(can2_motor[1].curspeed) > 5000) {
+
+			if (((rc.pc.press_r == 1 && xuc.fire_auto == 1)|| rc.pc.press_l == 1)|| rc.rc.custom_key_r == 1) {
+				fire_hold_cnt = 200;   // ÿ���յ��������󣬱���һ��ʱ��
+			}
+
+			// 1. �����������ȼ����ߣ�һ�������������Ƿ����п������󣬶��Ȼ���
+			if (jam_flag) {
+				can1_motor[6].setspeed = -1500;
+				jam_back_cnt++;
+
+				if (jam_back_cnt >= (JAM_BACK_TIME_MS / CTRL_PERIOD_MS)) {
+					jam_flag = 0;
+					jam_back_cnt = 0;
+					jam_current_cnt = 0;
+					can1_motor[6].setspeed = 0;
+				}
+			}
+			// 2. û�п���ʱ����ִ����������
+			else if (fire_hold_cnt > 0) {
+				fire_hold_cnt--;
+
+				can1_motor[6].setspeed = 6000;
+
+				// ���������Ƿ���������
+				if (can1_motor[6].current > JAM_CURRENT_THRESHOLD ||
+					can1_motor[6].current < -JAM_CURRENT_THRESHOLD) {
+					jam_current_cnt++;
+				}
+				else {
+					jam_current_cnt = 0;
+				}
+
+				// ����1���������ж�����
+				if (jam_current_cnt >= (JAM_DETECT_TIME_MS / CTRL_PERIOD_MS)) {
+					jam_flag = 1;
+					jam_back_cnt = 0;
+					jam_current_cnt = 0;
+					can1_motor[6].setspeed = -1500;
+				}
+			}
+			// 3. �޿������޿�����ֹͣ
+			else {
+				can1_motor[6].setspeed = 0;
+				jam_current_cnt = 0;
+			}
+		}
+		else
+		{
+			can1_motor[6].setspeed = 0;
+			fire_hold_cnt = 0;
+			jam_current_cnt = 0;
+			jam_back_cnt = 0;
+			jam_flag = 0;
+		}
+		ctrl.chassis.Update();
+		ctrl.pantile.Update();
+		vTaskDelay(2);
+	}
+}
+
+
+
+
+void DecodeTask(void* pvParameters)
+{
+	while (true)
+	{
+		rc.Decode_NEW();
+		supercap.decode();
+		judgement.BuffData();
+		judgement.GetData();
+		imu_pantile.Decode();
+		xuc.Decode();
+		vTaskDelay(1);
+	}
+}
+
+void UiSendTask(void* pvParameters)
+{
+	static uint8_t b_last = 0;
+
+	while (true)
+	{
+		supercap.encode();
+		if (rc.pc.B == 1 && b_last == 0)
+		{
+			rc.judement_start = true;
+		}
+		b_last = rc.pc.B;
+
+		if (rc.judement_start)
+		{
+			judgement.SendData();
+		}
+		vTaskDelay(30);
+	}
+}
+
+void ArmTask(void* pvParameters)
+{
+	static uint8_t enable_key_last = 0;
+	static uint8_t dm_reenable_pending = 0;
+	static uint8_t dm_reenable_retry = 0;
+	static TickType_t dm_reenable_tick = 0;
+
+	while (true)
+	{
+		const uint8_t enable_key_pressed = (rc.pc.CTRL == 1 || rc.rc.custom_key_l == 1) ? 1U : 0U;
+		const TickType_t now = xTaskGetTickCount();
+
+		//��ʼ����������
+		if (enable_key_pressed == 1 && enable_key_last == 0) {
+			ctrl.init_DM = 0;
+			dm_reenable_pending = 1;
+			dm_reenable_retry = 0;
+			dm_reenable_tick = now + pdMS_TO_TICKS(800);
+		}
+
+		if (dm_reenable_pending == 1 && now >= dm_reenable_tick) {
+			uint8_t has_fault = 0;
+			uint8_t need_start = 0;
+
+			for (uint32_t i = 0; i < 3; ++i) {
+				const uint8_t err = DMmotor[i].err;
+
+				if (err >= 8) {
+					has_fault = 1;
+					DMmotor[i].CanComm_ControlCmd(can2, CMD_CLEAR_MODE, DMmotor[i].GetControlStdId());
+				}
+				else if (err == 0) {
+					need_start = 1;
+				}
+			}
+
+			if (has_fault == 0) {
+				for (uint32_t i = 0; i < 3; ++i) {
+					const uint8_t err = DMmotor[i].err;
+					if (err == 0) {
+						DMmotor[i].Motor_Start(can2, DMmotor[i].GetControlStdId());
+					}
+				}
+			}
+
+			// ֻ����һ����ʹ����һ��������ڣ������ָ����ڿ��Ʋ�������̨���ԡ�
+			if (dm_reenable_retry == 0) {
+				ctrl.init_DM = 1;
+			}
+
+			dm_reenable_retry++;
+			if ((has_fault == 0 && need_start == 0) || dm_reenable_retry >= 20) {
+				dm_reenable_pending = 0;
+			}
+			else {
+				dm_reenable_tick = now + pdMS_TO_TICKS(100);
+			}
+		}
+
+		enable_key_last = enable_key_pressed;
+		vTaskDelay(dm_reenable_pending ? 20 : 300);
+	}
+}
+
+
+
+
+
