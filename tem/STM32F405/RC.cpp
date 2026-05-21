@@ -17,6 +17,40 @@ float GetChassisSpeedScale(uint8_t modeFlag)
         return 0.9f;   // normal
     }
 }
+
+constexpr float kFacePantileKp = 35.0f;
+constexpr float kFacePantileMinSpeed = 500.0f;
+constexpr float kFacePantileDeadbandDeg = 2.0f;
+constexpr float kFacePantileDir = 1.0f;
+
+float LimitFloat(float value, float limit)
+{
+    if (value > limit) return limit;
+    if (value < -limit) return -limit;
+    return value;
+}
+
+float GetFacePantileSpeed(float speedLimit)
+{
+    const float yawErrorDeg = ctrl.GetDelta(
+        mechanicalToDegree(can1_motor[7].angle[now]) - mechanicalToDegree(para.initial_yaw));
+
+    if (fabsf(yawErrorDeg) <= kFacePantileDeadbandDeg)
+    {
+        return 0.0f;
+    }
+
+    float speed = yawErrorDeg * kFacePantileKp * kFacePantileDir;
+    speed = LimitFloat(speed, speedLimit);
+
+    const float minSpeed = (speedLimit < kFacePantileMinSpeed) ? speedLimit : kFacePantileMinSpeed;
+    if (fabsf(speed) < minSpeed)
+    {
+        speed = (speed > 0.0f) ? minSpeed : -minSpeed;
+    }
+
+    return speed;
+}
 }
 void RC::Decode()
 {
@@ -187,6 +221,7 @@ void RC::OnRC()
 		ctrl.chassis.speedx = rc.ch[2] * para.max_speed / 330.f;
 		ctrl.chassis.speedy = rc.ch[3] * para.max_speed / 330.f;
 		ctrl.chassis.speedz = -1.f * rc.wheel * para.max_speed / 330.f;
+
 		ctrl.chassis.Keep_Direction();
 		ctrl.Control_Pantile_IMU();
 	}
@@ -229,8 +264,6 @@ void RC::OnRC()
 		can2_motor[3].setspeed = 0;
 		can2_motor[4].setspeed = 0;
 		can2_motor[5].setspeed = 0;
-		can2_motor[6].setspeed = 0;
-		can2_motor[7].setspeed = 0;
 		DMmotor[0].setSpeed = 0;
 		DMmotor[1].setSpeed = 0;
 		DMmotor[2].setSpeed = 0;
@@ -326,7 +359,11 @@ void RC::OnPC()
 		}
 		c_last = pc.C;
 
-		if (c_toggle)
+		if (pc.V)
+		{
+			ctrl.chassis.speedz = GetFacePantileSpeed(spin_speed_limit);
+		}
+		else if (c_toggle)
 		{
 			ctrl.chassis.speedz = spin_speed_limit;
 		}
@@ -335,7 +372,7 @@ void RC::OnPC()
 			ctrl.chassis.speedz = 0.0f;
 		}
 
-		//// ---------------- R���л� can1_motor[4][5] ----------------
+		////// ---------------- R���л� can1_motor[4][5] ----------------
 		//if (pc.R == 1 && r_last == 0)
 		//{
 		//	r_toggle = !r_toggle;
@@ -365,8 +402,8 @@ void RC::OnPC()
 		if (f_toggle)
 		{
 			ctrl.shooter.displayOpenRub = true;
-			can2_motor[0].setspeed = -7000;
-			can2_motor[1].setspeed = 7000;
+			can2_motor[0].setspeed = -6500;
+			can2_motor[1].setspeed = 6500;
 		}
 		else
 		{
@@ -386,6 +423,7 @@ void RC::OnPC()
 		}
 		g_last = pc.G;
 		ctrl.Control_Pantile_IMU();
+
 	}
 }
 

@@ -112,7 +112,7 @@ void CONTROL::Control_Pantile(int32_t ch_yaw, int32_t ch_pitch)
 		can1_motor[6].setspeed = 0;
 	}
 	if (DMmotor[2].setPos >= 0.40f) DMmotor[2].setPos = 0.40f;
-	if (DMmotor[2].setPos <= -0.15f) DMmotor[2].setPos = -0.15f;
+	if (DMmotor[2].setPos <= -0.18f) DMmotor[2].setPos = -0.18f;
 }
 
 void CONTROL::Control_Pantile_IMU()
@@ -167,7 +167,7 @@ void CONTROL::Control_Pantile_IMU()
 	//	can1_motor[6].setspeed = 0;
 	//}
 	if (DMmotor[2].setPos >= 0.40f) DMmotor[2].setPos = 0.40f;
-	if (DMmotor[2].setPos <= -0.15f) DMmotor[2].setPos = -0.15f;
+	if (DMmotor[2].setPos <= -0.18f) DMmotor[2].setPos = -0.18f;
 
 
 }
@@ -225,7 +225,7 @@ void CONTROL::CHASSIS::Update()
 
 	double vx = s_x * ct + s_y * st;
 	double vy = -s_x * st + s_y * ct;
-
+	
 	ctrl.chassis_motor[0]->setspeed = +vy + vx - speedz;
 	ctrl.chassis_motor[1]->setspeed = -vy + vx - speedz;
 	ctrl.chassis_motor[3]->setspeed = -vy - vx - speedz;
@@ -242,7 +242,7 @@ void CONTROL::CHASSIS::Update()
 
 		if (compression <= kLegSuspensionStage1)
 		{
-			motor.Kp = 800.0f;
+			motor.Kp = 1000.0f;
 			motor.Kd = 2.8f;
 			//motor.setTorque = torque_sign * (1.2f + 14.0f * compression);
 		}

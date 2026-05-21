@@ -115,14 +115,30 @@ public:
     void SendData(void);
     void BuffData();
     void Decode(uint8_t* m_frame);
-
-    void DisplayRP(int flag);
+    void DisplayImuPitch(float pitch);
     void DisplayCapState(uint8_t capState);
     void DisplpayMode(uint8_t mode);
+    void DisplayOpenRub(bool openrub);
+    void DisplaySpinSquare(void);
+    void DisplayLegPose(void);
+    void DisplpayHit(void);
     void DisplayCapture(bool isCapture);
     void DisplayCapVoltage(float capVoltage);
-
     void DisplayStaticUI();
+    void Displayload(void);
+    void Display_push_back(void);
+    void DisplayBulletSpeed(void);
+    void Displayfly(bool fly);
+    void DisplayState(bool);
+    void DisplayCapEnergyBar(float capEnergy);
+    void DisplayYawDirection(double angle);
+    void DisplayRP(int flag);
+   // void DisplayCapState(uint8_t capState);
+    //void DisplpayMode(uint8_t mode);
+    //void DisplayCapture(bool isCapture);
+    //void DisplayCapVoltage(float capVoltage);
+
+    //void DisplayStaticUI();
     void DisplayDynamicUI();   // 你可以在 cpp 里自己实现
 
     struct {

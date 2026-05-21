@@ -117,7 +117,7 @@ int main(void)
             & can1_motor[3],
             & can1_motor[4],
             & can1_motor[5],
-            & can2_motor[6]
+            & can1_motor[6]
     });
 
     powerLimiter.Init(g_powerMotors, 60.0f);

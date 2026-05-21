@@ -90,9 +90,7 @@ void start_task(void* pvParameters)
 	vTaskDelete(StartTask_Handler); //ɾ����ʼ����
 	taskEXIT_CRITICAL();            //�˳��ٽ���
 }
-int CNT = 0;
-int CNT_1 = 0;
-int CNT_2 = 0;
+
 void MotorUpdateTask(void* pvParameters)
 {
 	
@@ -112,8 +110,7 @@ void MotorUpdateTask(void* pvParameters)
 			DMmotor[i].DMmotor_Ontimer(can2, DMmotor[i].Kp, DMmotor[i].Kd, can2.jointpdata[i]);
 		}
 
-		CNT_1++;
-
+		
 	vTaskDelayUntil(&xlastWakeTime, pdMS_TO_TICKS(2));//��ʼִ�и�����֮��1ms��ִ�и�����
 }
 }
@@ -134,6 +131,9 @@ void CanTransimtTask(void* pvParameters)
 		can2.Transmit(0x200, can2.temp_data);
 		xuc.Encode(judgement.data.robot_status_t.robot_id);
 		can2.Transmit(0x85, xuc.tx_data, 8);
+		if (rc.pc.R == 1) {
+			DMmotor[2].Motor_Start(can2, DMmotor[2].GetControlStdId());
+		}
 		vTaskDelayUntil(&xlastWakeTime, pdMS_TO_TICKS(2));
 	}
 }
@@ -160,10 +160,10 @@ void ControlTask(void* pvParameters)
 		powerLimiter.SetMaxPower(judgeLimit);
 	}
 		rc.Update();
-		if (fabs(can2_motor[0].curspeed) > 5000 && fabs(can2_motor[1].curspeed) > 5000) {
+		if (fabs(can2_motor[0].curspeed) > 5000 && fabs(can2_motor[1].curspeed) > 5000 ) {
 
-			if (((rc.pc.press_r == 1 && xuc.fire_auto == 1)|| rc.pc.press_l == 1)|| rc.rc.custom_key_r == 1) {
-				fire_hold_cnt = 200;   // ÿ���յ��������󣬱���һ��ʱ��
+			if ((((rc.pc.press_r == 1 && xuc.fire_auto == 1)|| rc.pc.press_l == 1) && (fabs(judgement.data.projectile_allowance_t.projectile_allowance_17mm)> 3)&&(fabs(judgement.data.robot_status_t.shooter_barrel_heat_limit- judgement.data.power_heat_data_t.shooter_17mm_1_barrel_heat)>30))|| rc.rc.custom_key_r == 1) {
+				fire_hold_cnt = 100;   // ÿ���յ��������󣬱���һ��ʱ��
 			}
 
 			// 1. �����������ȼ����ߣ�һ�������������Ƿ����п������󣬶��Ȼ���
@@ -182,7 +182,7 @@ void ControlTask(void* pvParameters)
 			else if (fire_hold_cnt > 0) {
 				fire_hold_cnt--;
 
-				can1_motor[6].setspeed = 6000;
+				can1_motor[6].setspeed = 2500;
 
 				// ���������Ƿ���������
 				if (can1_motor[6].current > JAM_CURRENT_THRESHOLD ||
@@ -217,6 +217,7 @@ void ControlTask(void* pvParameters)
 		}
 		ctrl.chassis.Update();
 		ctrl.pantile.Update();
+		
 		vTaskDelay(2);
 	}
 }
@@ -237,7 +238,7 @@ void DecodeTask(void* pvParameters)
 		vTaskDelay(1);
 	}
 }
-
+int16_t CNT_judgement = 0;
 void UiSendTask(void* pvParameters)
 {
 	static uint8_t b_last = 0;
@@ -245,16 +246,18 @@ void UiSendTask(void* pvParameters)
 	while (true)
 	{
 		supercap.encode();
-		if (rc.pc.B == 1 && b_last == 0)
-		{
-			rc.judement_start = true;
-		}
-		b_last = rc.pc.B;
 
-		if (rc.judement_start)
-		{
+		//if (rc.judement_start)
+		//{
+		if (CNT_judgement > 511) {
 			judgement.SendData();
+			//CNT_judgement++;
 		}
+		else {
+			CNT_judgement++;
+		}
+		//}
+		//judgement.SendData();
 		vTaskDelay(30);
 	}
 }
@@ -290,7 +293,8 @@ void ArmTask(void* pvParameters)
 					has_fault = 1;
 					DMmotor[i].CanComm_ControlCmd(can2, CMD_CLEAR_MODE, DMmotor[i].GetControlStdId());
 				}
-				else if (err == 0) {
+				else if (err != 1) {
+					// Only ERR=1 is confirmed enabled. ERR=0 and reserved states 2..7 should retry enable.
 					need_start = 1;
 				}
 			}
@@ -298,7 +302,7 @@ void ArmTask(void* pvParameters)
 			if (has_fault == 0) {
 				for (uint32_t i = 0; i < 3; ++i) {
 					const uint8_t err = DMmotor[i].err;
-					if (err == 0) {
+					if (err != 1) {
 						DMmotor[i].Motor_Start(can2, DMmotor[i].GetControlStdId());
 					}
 				}

@@ -99,8 +99,6 @@ void Motor::Ontimer(uint8_t idata[][8], uint8_t* odata)//idate: receive;odate: t
 		can2_motor[3].setspeed = 0;
 		can2_motor[4].setspeed = 0;
 		can2_motor[5].setspeed = 0;
-		can2_motor[6].setspeed = 0;
-		can2_motor[7].setspeed = 0;
 		DMmotor[0].setSpeed = 0;
 		DMmotor[1].setSpeed = 0;
 		DMmotor[2].setSpeed = 0;

@@ -74,8 +74,8 @@ extern TaskHandle_t MotorTask_Handler;
 #define CANTX_STK_SIZE 		256 
 extern TaskHandle_t CanTxTask_Handler;
 
-#define UISEND_TASK_PRIO		1
-#define UISEND_STK_SIZE 		128
+#define UISEND_TASK_PRIO		5
+#define UISEND_STK_SIZE 		256
 extern TaskHandle_t UiSendTask_Handler;
 
 extern PARAMETER para;

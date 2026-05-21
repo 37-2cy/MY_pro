@@ -202,115 +202,25 @@
         <IsCollapsed>false</IsCollapsed>
         <IsFavorite>false</IsFavorite>
       </LiveVariable>
+      <LiveVariable>
+        <Expression>CNT_judgement</Expression>
+        <Type>com.sysprogs.types.builtin.SInt16</Type>
+        <Enabled>true</Enabled>
+        <Breakpoint>
+          <ComparisonMode>Equals</ComparisonMode>
+          <Enabled>false</Enabled>
+        </Breakpoint>
+        <Plot>false</Plot>
+        <IsCollapsed>false</IsCollapsed>
+        <IsFavorite>false</IsFavorite>
+      </LiveVariable>
     </LiveVariables>
     <NestedLiveVariables>
       <NestedVariableSettingsCollection>
         <ID>com.sysprogs.AllGlobals</ID>
         <Variables>
           <LiveVariable>
-            <Expression>can1_motor</Expression>
-            <Enabled>true</Enabled>
-            <Breakpoint>
-              <ComparisonMode>Equals</ComparisonMode>
-              <Enabled>false</Enabled>
-            </Breakpoint>
-            <Plot>false</Plot>
-            <IsCollapsed>false</IsCollapsed>
-            <IsFavorite>false</IsFavorite>
-          </LiveVariable>
-          <LiveVariable>
-            <Expression>can1_motor[7]</Expression>
-            <Enabled>true</Enabled>
-            <Breakpoint>
-              <ComparisonMode>Equals</ComparisonMode>
-              <Enabled>false</Enabled>
-            </Breakpoint>
-            <Plot>false</Plot>
-            <IsCollapsed>false</IsCollapsed>
-            <IsFavorite>false</IsFavorite>
-          </LiveVariable>
-          <LiveVariable>
-            <Expression>can1_motor[7].angle</Expression>
-            <Type>com.sysprogs.types.builtin.UInt64</Type>
-            <Enabled>true</Enabled>
-            <Breakpoint>
-              <ComparisonMode>Equals</ComparisonMode>
-              <Enabled>false</Enabled>
-            </Breakpoint>
-            <Plot>false</Plot>
-            <IsCollapsed>false</IsCollapsed>
-            <IsFavorite>false</IsFavorite>
-          </LiveVariable>
-          <LiveVariable>
-            <Expression>can2</Expression>
-            <Enabled>true</Enabled>
-            <Breakpoint>
-              <ComparisonMode>Equals</ComparisonMode>
-              <Enabled>false</Enabled>
-            </Breakpoint>
-            <Plot>false</Plot>
-            <IsCollapsed>false</IsCollapsed>
-            <IsFavorite>false</IsFavorite>
-          </LiveVariable>
-          <LiveVariable>
-            <Expression>imu_pantile</Expression>
-            <Enabled>true</Enabled>
-            <Breakpoint>
-              <ComparisonMode>Equals</ComparisonMode>
-              <Enabled>false</Enabled>
-            </Breakpoint>
-            <Plot>false</Plot>
-            <IsCollapsed>false</IsCollapsed>
-            <IsFavorite>false</IsFavorite>
-          </LiveVariable>
-          <LiveVariable>
-            <Expression>rc</Expression>
-            <Enabled>true</Enabled>
-            <Breakpoint>
-              <ComparisonMode>Equals</ComparisonMode>
-              <Enabled>false</Enabled>
-            </Breakpoint>
-            <Plot>false</Plot>
-            <IsCollapsed>false</IsCollapsed>
-            <IsFavorite>false</IsFavorite>
-          </LiveVariable>
-          <LiveVariable>
-            <Expression>rc.pc</Expression>
-            <Enabled>true</Enabled>
-            <Breakpoint>
-              <ComparisonMode>Equals</ComparisonMode>
-              <Enabled>false</Enabled>
-            </Breakpoint>
-            <Plot>false</Plot>
-            <IsCollapsed>false</IsCollapsed>
-            <IsFavorite>false</IsFavorite>
-          </LiveVariable>
-          <LiveVariable>
-            <Expression>rc.m_frame</Expression>
-            <Type>com.sysprogs.fixed</Type>
-            <Enabled>true</Enabled>
-            <Breakpoint>
-              <ComparisonMode>Equals</ComparisonMode>
-              <Enabled>false</Enabled>
-            </Breakpoint>
-            <Plot>false</Plot>
-            <IsCollapsed>false</IsCollapsed>
-            <IsFavorite>false</IsFavorite>
-          </LiveVariable>
-          <LiveVariable>
-            <Expression>xuc</Expression>
-            <Enabled>true</Enabled>
-            <Breakpoint>
-              <ComparisonMode>Equals</ComparisonMode>
-              <Enabled>false</Enabled>
-            </Breakpoint>
-            <Plot>false</Plot>
-            <IsCollapsed>false</IsCollapsed>
-            <IsFavorite>false</IsFavorite>
-          </LiveVariable>
-          <LiveVariable>
-            <Expression>xuc.target</Expression>
-            <Type>com.sysprogs.types.builtin.UInt64</Type>
+            <Expression>judgement</Expression>
             <Enabled>true</Enabled>
             <Breakpoint>
               <ComparisonMode>Equals</ComparisonMode>
@@ -341,6 +251,38 @@
           <IsFavorite>false</IsFavorite>
           <IsLive>false</IsLive>
           <LastUsed>134187206676518323</LastUsed>
+        </State>
+      </HardwareRegisterRecord>
+      <HardwareRegisterRecord>
+        <Name>d1</Name>
+        <State>
+          <IsFavorite>false</IsFavorite>
+          <IsLive>false</IsLive>
+          <LastUsed>134232079361835386</LastUsed>
+        </State>
+      </HardwareRegisterRecord>
+      <HardwareRegisterRecord>
+        <Name>d2</Name>
+        <State>
+          <IsFavorite>false</IsFavorite>
+          <IsLive>false</IsLive>
+          <LastUsed>134232079389099074</LastUsed>
+        </State>
+      </HardwareRegisterRecord>
+      <HardwareRegisterRecord>
+        <Name>d3</Name>
+        <State>
+          <IsFavorite>false</IsFavorite>
+          <IsLive>false</IsLive>
+          <LastUsed>134232079389579212</LastUsed>
+        </State>
+      </HardwareRegisterRecord>
+      <HardwareRegisterRecord>
+        <Name>d9</Name>
+        <State>
+          <IsFavorite>false</IsFavorite>
+          <IsLive>false</IsLive>
+          <LastUsed>134232081296495784</LastUsed>
         </State>
       </HardwareRegisterRecord>
     </HardwareRegisters>

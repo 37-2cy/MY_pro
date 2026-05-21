@@ -4,6 +4,7 @@
 #include <cstdarg>
 #include "imu.h"
 #include "control.h"
+#include "HTmotor.h"
 #include "xuc_can.h"
 #include "RC.h"
 #include "supercap.h"
@@ -187,99 +188,127 @@ void Judgement::GetData(void)
 void Judgement::DisplayStaticUI()
 {
     string_data_struct_t staticStringUI;
-
     switch (count % 100)
     {
     case 0:
     {
-        char UIRPData[5] = {};
+        char UIPitchData[5] = {};
 
-        UIRPData[0] = 'G';
-        UIRPData[1] = 'E';
-        UIRPData[2] = 'A';
-        UIRPData[3] = 'R';
-
-        Char_Draw(&staticStringUI, (char*)"PI", UI_Graph_ADD, 9, UI_Color_Green,
-            30, 5, 3, 60, 820, UIRPData);
+        UIPitchData[0] = 'P';
+        UIPitchData[1] = 'I';
+        UIPitchData[2] = 'T';
+        UIPitchData[3] = 'C';
+        UIPitchData[4] = 'H';
+        Char_Draw(&staticStringUI, "PTH", UI_Graph_ADD, 7, UI_Color_Green, 30, 5, 3, 60, 820, UIPitchData);//PITCH
 
         Char_ReFresh(&staticStringUI);
         break;
     }
     case 10:
+    {
+        char UIStateData[5] = {};
+        UIStateData[0] = 'S';
+        UIStateData[1] = 'T';
+        UIStateData[2] = 'A';
+        UIStateData[3] = 'T';
+        UIStateData[4] = 'E';
+        Char_Draw(&staticStringUI, "STATE", UI_Graph_ADD, 8, UI_Color_Green, 30, 5, 3, 60, 760, UIStateData);//CAP
+
+        Char_ReFresh(&staticStringUI);
         break;
+
+
+    }
     case 20:
     {
-        char UICapData[5] = {};
-        UICapData[0] = 'C';
-        UICapData[1] = 'A';
-        UICapData[2] = 'P';
+        char UIModeData[3] = {};
+        UIModeData[0] = 'M';
+        UIModeData[1] = 'O';
+        UIModeData[2] = 'D';
 
-        Char_Draw(&staticStringUI, (char*)"CA", UI_Graph_ADD, 7, UI_Color_Green,
-            30, 3, 3, 60, 760, UICapData);
-
+        Char_Draw(&staticStringUI, "mod", UI_Graph_ADD, 9, UI_Color_Green, 30, 4, 3, 60, 700, UIModeData);//MODE
         Char_ReFresh(&staticStringUI);
         break;
     }
     case 30:
     {
-        char UIModeData[5] = {};
-        UIModeData[0] = 'M';
-        UIModeData[1] = 'O';
-        UIModeData[2] = 'D';
-        UIModeData[3] = 'E';
+        char UIfly[3] = {};
 
-        Char_Draw(&staticStringUI, (char*)"MO", UI_Graph_ADD, 6, UI_Color_Green,
-            30, 5, 3, 60, 700, UIModeData);
+        UIfly[0] = 'F';
+        UIfly[1] = 'L';
+        UIfly[2] = 'Y';
 
+        Char_Draw(&staticStringUI, "F1y", UI_Graph_ADD, 6, UI_Color_Green, 30, 3, 3, 60, 640, UIfly);//飞坡
         Char_ReFresh(&staticStringUI);
         break;
     }
     case 40:
     {
-        char UICaptureData[7] = {};
+        char UIOpenRubData[3] = {};
 
-        UICaptureData[0] = 'O';
-        UICaptureData[1] = 'P';
-        UICaptureData[2] = 'E';
-        UICaptureData[3] = 'N';
-        UICaptureData[4] = 'R';
-        UICaptureData[5] = 'U';
-        UICaptureData[6] = 'B';
+        UIOpenRubData[0] = 'R';
+        UIOpenRubData[1] = 'U';
+        UIOpenRubData[2] = 'B';
 
-        Char_Draw(&staticStringUI, (char*)"CPT", UI_Graph_ADD, 5, UI_Color_Green,
-            30, 7, 3, 60, 640, UICaptureData);
+        Char_Draw(&staticStringUI, "RUB", UI_Graph_ADD, 5, UI_Color_Green, 30, 3, 3, 60, 580, UIOpenRubData);//RUB
 
         Char_ReFresh(&staticStringUI);
         break;
+
+
     }
     case 50:
+    {
+        graphic_data_struct_t staticGraohUI4[7] = {};
+
+        LineDraw(&staticGraohUI4[0], "R1", UI_Graph_ADD, 1, UI_Color_Main, 2, 960 + 70, 540 - 48, 960 + 70, 540 - 120);
+        LineDraw(&staticGraohUI4[1], "L1", UI_Graph_ADD, 1, UI_Color_Main, 2, 960 - 70, 540 - 48, 960 - 70, 540 - 120);
+        LineDraw(&staticGraohUI4[2], "R2", UI_Graph_ADD, 1, UI_Color_Main, 2, 1061, 480, 1061, 420);
+        LineDraw(&staticGraohUI4[3], "L2", UI_Graph_ADD, 1, UI_Color_Main, 2, 960 - 100, 480, 960 - 100, 420);
+        /*LineDraw(&staticGraohUI4[4], "B3", UI_Graph_ADD, 1, UI_Color_Main, 2, 960 - 30, 400, 960 + 30, 400);
+        LineDraw(&staticGraohUI4[5], "B4", UI_Graph_ADD, 1, UI_Color_Main, 2, 960 - 20, 380, 960 + 20, 380);*/
+        UI_ReFresh(7, staticGraohUI4);
         break;
+        //char UICapDisplayData1[3] = {};
+        //UICapDisplayData1[0] = '1';
+        //UICapDisplayData1[1] = '3';
+        //UICapDisplayData1[2] = 'V';
+
+        //Char_Draw(&staticStringUI, "C1", UI_Graph_ADD, 4, UI_Color_Purplish_red, 20, 3, 2, 580, 70, UICapDisplayData1);//13V
+
+        //Char_ReFresh(&staticStringUI);
+    }
     case 60:
+    {
+        //char UICapDisplayData2[3] = {};
+        //UICapDisplayData2[0] = '1';
+        //UICapDisplayData2[1] = '9';
+        //UICapDisplayData2[2] = 'V';
+
+        //Char_Draw(&staticStringUI, "C2", UI_Graph_ADD, 4, UI_Color_Yellow, 20, 3, 2, 1012, 70, UICapDisplayData2);//19V
+
+        //Char_ReFresh(&staticStringUI);
         break;
+    }
     case 70:
     {
-        char UICapDisplayData3[3] = {};
-        UICapDisplayData3[0] = '2';
-        UICapDisplayData3[1] = '4';
-        UICapDisplayData3[2] = 'V';
+        //char UICapDisplayData3[3] = {};
+        //UICapDisplayData3[0] = '2';
+        //UICapDisplayData3[1] = '3';
+        //UICapDisplayData3[2] = 'V';
 
-        Char_Draw(&staticStringUI, (char*)"C2", UI_Graph_ADD, 3, UI_Color_Green,
-            20, 3, 2, 1300, 70, UICapDisplayData3);
+        //Char_Draw(&staticStringUI, "C2", UI_Graph_ADD, 3, UI_Color_Green, 20, 3, 2, 1300, 70, UICapDisplayData3);//23V
 
-        Char_ReFresh(&staticStringUI);
+        //Char_ReFresh(&staticStringUI);
         break;
     }
     case 80:
     {
         graphic_data_struct_t staticGraohUI3[5] = {};
-        Rectangle_Draw(&staticGraohUI3[0], (char*)"CR", UI_Graph_ADD, 3,
-            UI_Color_Green, 2, 600, 100, 1320, 150);
-        LineDraw(&staticGraohUI3[1], (char*)"CL", UI_Graph_ADD, 3,
-            UI_Color_Yellow, 2, 1032, 100, 1032, 150);
-        LineDraw(&staticGraohUI3[2], (char*)"LL1", UI_Graph_ADD, 3,
-            UI_Color_Main, 2, 480, 100, 700, 400);
-        LineDraw(&staticGraohUI3[3], (char*)"LL2", UI_Graph_ADD, 3,
-            UI_Color_Main, 2, 1440, 100, 1220, 400);
+        /*LineDraw(&staticGraohUI3[1], "B5", UI_Graph_ADD, 3, UI_Color_Main, 2, 960-30, 340, 960 + 30, 340);
+        LineDraw(&staticGraohUI3[2], "B6", UI_Graph_ADD, 3, UI_Color_Main, 2, 960-20, 320, 960 + 20, 320);*/
+        LineDraw(&staticGraohUI3[4], "MIDLINE", UI_Graph_ADD, 3, UI_Color_Main, 2, 960 + 100, 450, 960 - 100, 450);
+        LineDraw(&staticGraohUI3[3], "RIGHT_FRONT", UI_Graph_ADD, 3, UI_Color_Main, 2, 1370, 100, 1150, 400);
 
         UI_ReFresh(5, staticGraohUI3);
         break;
@@ -288,11 +317,12 @@ void Judgement::DisplayStaticUI()
     {
         graphic_data_struct_t staticGraohUI2[7] = {};
 
-        LineDraw(&staticGraohUI2[0], (char*)"L1", UI_Graph_ADD, 2,
-            UI_Color_Purplish_red, 2, 1011, 280, 1011, 600);
-        Circle_Draw(&staticGraohUI2[3], (char*)"R1", UI_Graph_ADD, 2,
-            UI_Color_Purplish_red, 3, 1011, 505, 10);
-
+        //LineDraw(&staticGraohUI2[0], "MID", UI_Graph_ADD, 2, UI_Color_Main, 2, 960, 540 + 70, 960, 280);
+        //LineDraw(&staticGraohUI2[1], "B1", UI_Graph_ADD, 2, UI_Color_Main, 2, 930, 440, 960 + 30, 440); //倒数第三根
+        //LineDraw(&staticGraohUI2[2], "B2", UI_Graph_ADD, 2, UI_Color_Main, 2, 930, 420, 960 + 30, 420);
+        Circle_Draw(&staticGraohUI2[1], "aim", UI_Graph_ADD, 2, UI_Color_Main, 2, 960, 450, 20);
+        LineDraw(&staticGraohUI2[5], "LEFT_FRONT", UI_Graph_ADD, 2, UI_Color_Main, 2, 550, 100, 770, 400);
+        LineDraw(&staticGraohUI2[3], "aml", UI_Graph_ADD, 2, UI_Color_Main, 2, 960, 450 + 20, 960, 450 - 20);
         UI_ReFresh(7, staticGraohUI2);
         break;
     }
@@ -379,6 +409,32 @@ void Judgement::DisplayCapState(uint8_t capState)
 
     Char_ReFresh(&capStateData);
 }
+void Judgement::DisplayState(bool isUp)
+{
+    char stateChar[5] = {};
+    string_data_struct_t stateData = {};
+    const uint32_t graphOperate = graphInit ? UI_Graph_Change : UI_Graph_ADD;
+    const uint32_t color = isUp ? UI_Color_Yellow : UI_Color_Cyan;
+
+    if (isUp)
+    {
+        stateChar[0] = 'U';
+        stateChar[1] = 'P';
+        stateChar[2] = ' ';
+        stateChar[3] = ' ';
+    }
+    else
+    {
+        stateChar[0] = 'D';
+        stateChar[1] = 'O';
+        stateChar[2] = 'W';
+        stateChar[3] = 'N';
+    }
+
+    Char_Draw(&stateData, (char*)"ST1", graphOperate, 8, color,
+        30, 4, 3, 280, 760, stateChar);
+    Char_ReFresh(&stateData);
+}
 void Judgement::DisplpayMode(uint8_t mode)
 {
     char modeChar[7] = {};
@@ -392,6 +448,7 @@ void Judgement::DisplpayMode(uint8_t mode)
         modeChar[2] = 'P';
         modeChar[3] = 'E';
         modeChar[4] = 'R';
+        modeChar[5] = ' ';
     }
     else
     {
@@ -404,10 +461,94 @@ void Judgement::DisplpayMode(uint8_t mode)
     }
 
     Char_Draw(&modeData, (char*)"MD1", graphOperate, 6, UI_Color_Green,
-        30, 7, 3, 280, 700, modeChar);
+        30, 6, 3, 280, 700, modeChar);
     Char_ReFresh(&modeData);
 }
+void Judgement::DisplaySpinSquare(void)
+{
+    static uint8_t spinStep = 0;
+    const bool spinning = (rc.c_toggle != 0) && (ctrl.chassis.speedz != 0);
+    const uint32_t graphOperate = graphInit ? UI_Graph_Change : UI_Graph_ADD;
+    const uint32_t color = spinning ? UI_Color_Yellow : UI_Color_Cyan;
+    const int16_t centerX = 1015;
+    const int16_t centerY = 450;
+    static const int16_t vertices[4][4][2] = {
+        {{-18, -18}, { 18, -18}, { 18,  18}, {-18,  18}},
+        {{-10, -24}, { 24, -10}, { 10,  24}, {-24,  10}},
+        {{  0, -26}, { 26,   0}, {  0,  26}, {-26,   0}},
+        {{ 10, -24}, { 24,  10}, {-10,  24}, {-24, -10}},
+    };
+    char names[4][3] = {
+        {'S', '0', 0},
+        {'S', '1', 0},
+        {'S', '2', 0},
+        {'S', '3', 0},
+    };
+    graphic_data_struct_t square[4] = {};
 
+    if (spinning)
+    {
+        spinStep = static_cast<uint8_t>((spinStep + 1U) & 0x03U);
+    }
+    else
+    {
+        spinStep = 0;
+    }
+
+    for (uint8_t i = 0; i < 4; i++)
+    {
+        const uint8_t next = static_cast<uint8_t>((i + 1U) & 0x03U);
+        LineDraw(&square[i], names[i], graphOperate, 4, color, 2,
+            centerX + vertices[spinStep][i][0],
+            centerY + vertices[spinStep][i][1],
+            centerX + vertices[spinStep][next][0],
+            centerY + vertices[spinStep][next][1]);
+    }
+
+    UI_ReFresh(2, &square[0]);
+    UI_ReFresh(2, &square[2]);
+}
+void Judgement::DisplayLegPose(void)
+{
+    const bool leftExtended = (leg_state == 1) && (DMmotor[0].setPos < -0.40f);
+    const bool rightExtended = (leg_state == 1) && (DMmotor[1].setPos > 0.40f);
+    const uint32_t graphOperate = graphInit ? UI_Graph_Change : UI_Graph_ADD;
+    const uint32_t leftColor = leftExtended ? UI_Color_Yellow : UI_Color_Cyan;
+    const uint32_t rightColor = rightExtended ? UI_Color_Yellow : UI_Color_Cyan;
+    graphic_data_struct_t leg[4] = {};
+    char names[4][3] = {
+        {'L', 'G', '0'},
+        {'L', 'G', '1'},
+        {'R', 'G', '0'},
+        {'R', 'G', '1'},
+    };
+
+    int16_t leftHipX = 910;
+    int16_t leftHipY = 425;
+    int16_t leftKneeX = leftExtended ? 885 : 892;
+    int16_t leftKneeY = leftExtended ? 455 : 450;
+    int16_t leftFootX = leftExtended ? 858 : 910;
+    int16_t leftFootY = leftExtended ? 490 : 475;
+
+    int16_t rightHipX = 1010;
+    int16_t rightHipY = 425;
+    int16_t rightKneeX = rightExtended ? 1035 : 1028;
+    int16_t rightKneeY = rightExtended ? 455 : 450;
+    int16_t rightFootX = rightExtended ? 1062 : 1010;
+    int16_t rightFootY = rightExtended ? 490 : 475;
+
+    LineDraw(&leg[0], names[0], graphOperate, 4, leftColor, 3,
+        leftHipX, leftHipY, leftKneeX, leftKneeY);
+    LineDraw(&leg[1], names[1], graphOperate, 4, leftColor, 3,
+        leftKneeX, leftKneeY, leftFootX, leftFootY);
+    LineDraw(&leg[2], names[2], graphOperate, 4, rightColor, 3,
+        rightHipX, rightHipY, rightKneeX, rightKneeY);
+    LineDraw(&leg[3], names[3], graphOperate, 4, rightColor, 3,
+        rightKneeX, rightKneeY, rightFootX, rightFootY);
+
+    UI_ReFresh(2, &leg[0]);
+    UI_ReFresh(2, &leg[2]);
+}
 void Judgement::DisplayCapture(bool isCapture)
 {
     char captureChar[5] = {};
@@ -476,46 +617,162 @@ void Judgement::DisplayCapVoltage(float capVoltage)
     UI_ReFresh(1, &voltageData);
 }
 
+//void Judgement::SendData(void)
+//{
+//    robotId = data.robot_status_t.robot_id;
+//    clientId = robotId | 0x100;
+//
+//    if (count < 200)
+//    {
+//        DisplayStaticUI();
+//    }
+//    else
+//    {
+//        switch (count % 20)
+//        {
+//        case 0:
+//            rc.gear++;
+//            DisplayRP(rc.gear);
+//            break;
+//        case 4:
+//            DisplayCapState(supercap.Txsuper.state);
+//            break;
+//        case 8:
+//            DisplayCapVoltage(supercap.Rxsuper.cap_energy);
+//            break;
+//        case 12:
+//            DisplayCapture(ctrl.shooter.displayOpenRub);
+//            break;
+//        default:
+//            break;
+//        }
+//    }
+//
+//    const uint8_t modeFlag = (flag_shoot == 1) ? 1 : 0;
+//    DisplpayMode(modeFlag);
+//
+//    if (count > 220)
+//    {
+//        graphInit = true;
+//    }
+//
+//    count++;
+//}
+
 void Judgement::SendData(void)
 {
+
     robotId = data.robot_status_t.robot_id;
     clientId = robotId | 0x100;
-
+    static uint8_t b_last = 0;
+    if (rc.pc.B == 1 && b_last == 0) {
+        count = 0;
+        graphInit = false;
+    }
+    b_last = rc.pc.B;
     if (count < 200)
     {
         DisplayStaticUI();
     }
     else
     {
-        switch (count % 20)
+        switch (count % 10)
         {
         case 0:
-            rc.gear++;
-            DisplayRP(rc.gear);
+        {
+            //DisplayImuPitch(imu_pantile.GetAnglePitch());
+            DisplayOpenRub(ctrl.shooter.displayOpenRub);
             break;
+        }
+        case 1:
+        {
+            //Displayload();
+            DisplayOpenRub(ctrl.shooter.displayOpenRub);
+            break;
+        }
+        case 2:
+        {
+            //Displayfly(power.fly_flag);
+            break;
+        }
+        case 3:
+        {
+            DisplayState(leg_state == 1);
+            break;
+        }
         case 4:
-            DisplayCapState(supercap.Txsuper.state);
+        {
+            //DisplayCapVoltage(supercap.Rxsuper.cap_energy);
+           // DisplayYawDirection(can2_motor[3].angle[now]);
             break;
+        }
+        case 5:
+        {
+            DisplayOpenRub(ctrl.shooter.displayOpenRub);
+            break;
+        }
+        case 6:
+        {
+            //DisplayCapEnergyBar(supercap.Rxsuper.cap_energy);
+            //DisplayBulletSpeed();
+            DisplayLegPose();
+            break;
+        }
+        case 7:
+        {
+            //DisplpayHit();
+            break;
+        }
         case 8:
-            DisplayCapVoltage(supercap.Rxsuper.cap_energy);
+        {
+            DisplpayMode(flag_shoot);
             break;
-        case 12:
-            DisplayCapture(ctrl.shooter.displayOpenRub);
+        }
+        case 9:
+        {
+            DisplaySpinSquare();
             break;
+        }
         default:
             break;
         }
     }
-
-    const uint8_t modeFlag = (flag_shoot == 1) ? 1 : 0;
-    DisplpayMode(modeFlag);
-
-    if (count > 220)
+    if (count > 500)
     {
         graphInit = true;
     }
-
     count++;
+
+}
+
+void Judgement::DisplayOpenRub(bool openrub)
+{
+    char rubChar[3] = {};
+    int color;
+    string_data_struct_t rubData;
+    if (openrub)
+    {
+        rubChar[0] = 'O';
+        rubChar[1] = 'N';
+        color = UI_Color_Green;
+    }
+    else
+    {
+        rubChar[0] = 'O';
+        rubChar[1] = 'F';
+        rubChar[2] = 'F';
+        color = UI_Color_Pink;
+    }
+    if (!graphInit)
+    {
+        Char_Draw(&rubData, "OpenRub", UI_Graph_ADD, 5, color, 30, 5, 3, 170, 580, rubChar);
+    }
+    else
+    {
+        Char_Draw(&rubData, "OpenRub", UI_Graph_Change, 5, color, 30, 5, 3, 170, 580, rubChar);
+    }
+
+    Char_ReFresh(&rubData);
 }
 
 void Judgement::Decode(uint8_t* m_frame)
@@ -1071,9 +1328,10 @@ void Judgement::UI_ReFresh(int cnt, float_data_struct_t* floatdata)
     UI_seq++;
 }
 
-/************************************************UI推送字符*************************************************/
+
 void Judgement::Char_ReFresh(string_data_struct_t* string_Data)
 {
+    int i, n;
     uint8_t dataLength;
     CommunatianData_graphic_t graphicData;
     memset(m_uarttx, 0, DMA_TX_SIZE);
@@ -1081,23 +1339,22 @@ void Judgement::Char_ReFresh(string_data_struct_t* string_Data)
     graphicData.txFrameHeader.sof = UI_SOF;
     graphicData.txFrameHeader.data_length = 51;
     graphicData.txFrameHeader.seq = UI_seq;
-
-    memcpy(m_uarttx, &graphicData.txFrameHeader, sizeof(frame_header_t));
-    AppendCRC8CheckSum(m_uarttx, sizeof(frame_header_t));
+    memcpy(m_uarttx, &graphicData.txFrameHeader, (sizeof(frame_header_t)));
+    AppendCRC8CheckSum(m_uarttx, sizeof(frame_header_t));	//帧头CRC8校验
 
     graphicData.CMD = UI_CMD_Robo_Exchange;
+
     graphicData.txID.data_cmd_id = UI_Data_ID_DrawChar;
     graphicData.txID.sender_ID = robotId;
-    graphicData.txID.receiver_ID = clientId;
+    graphicData.txID.receiver_ID = clientId;                          //填充操作数据
 
     memcpy(m_uarttx + 5, (uint8_t*)&graphicData.CMD, 8);
 
     memcpy(m_uarttx + 13, string_Data, sizeof(string_data_struct_t));
-    dataLength = sizeof(CommunatianData_graphic_t) +
-        sizeof(string_data_struct_t);
+    dataLength = sizeof(CommunatianData_graphic_t) + sizeof(string_data_struct_t);
 
     AppendCRC16CheckSum(m_uarttx, dataLength);
 
     m_uart->UARTTransmit(m_uarttx, dataLength);
-    UI_seq++;
+    UI_seq++;                                                         //包序号+1
 }
