@@ -1,0 +1,15 @@
+# Visual Studio / VisualGDB caches
+.vs/
+.visualgdb/
+STM32F405/.visualgdb/
+
+# Build outputs
+VisualGDB/
+STM32F405/VisualGDB/
+
+# User-specific project settings
+*.vcxproj.user
+*.vgdbsettings.*.user
+
+# Lock/cache files
+*.lck
